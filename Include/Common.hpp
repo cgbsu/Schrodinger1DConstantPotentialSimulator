@@ -10,6 +10,4 @@
 #include <string>
 #include <sstream>
 #include <array>
-#include <imgui.h>
-#include <implot.h>
 

@@ -1,15 +1,5 @@
 [requires]
-glfw/3.3.8
-glew/2.2.0
-imgui/1.87
-implot/0.14
 
 [generators]
 cmake
-
-[imports]
-./misc/bindings, imgui_impl_glfw.cpp -> ../bindings
-./misc/bindings, imgui_impl_opengl3.cpp -> ../bindings
-./misc/bindings, imgui_impl_glfw.h -> ../bindings
-./misc/bindings, imgui_impl_opengl3.h -> ../bindings
 

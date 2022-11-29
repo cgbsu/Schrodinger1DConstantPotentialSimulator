@@ -25,30 +25,30 @@ static auto consolidateData(std::vector<Data<ProfileTagParamterConstant>>& regio
 	return ChartBuffers{xBuffer, yBuffer};
 }
 
-template<auto ProfileTagParamterConstant = defaultProfile>
-static void plot(const ChartBuffers<ProfileTagParamterConstant>& buffers)
-{
-	ImGui::NewFrame();	
-	if(ImGui::Begin("1D Schrodinger Constant Potential Simulation"))
-	{
-		if(ImPlot::BeginPlot("Wave Function"))
-		{
-			ImPlot::PlotLine(
-					"All Regions", 
-					buffers.xBuffer.data(), 
-					buffers.yBuffer.data(), 
-					buffers.xBuffer.size()
-				);
-			ImPlot::EndPlot();
-		}
-		else
-			std::cerr << "Something went wrong while plotting.\n";
-	}
-	else
-		std::cerr << "ImGui failed to begin!\n";
-	ImGui::End();
-	ImGui::Render();
-}
+//template<auto ProfileTagParamterConstant = defaultProfile>
+//static void plot(const ChartBuffers<ProfileTagParamterConstant>& buffers)
+//{
+//	ImGui::NewFrame();	
+//	if(ImGui::Begin("1D Schrodinger Constant Potential Simulation"))
+//	{
+//		if(ImPlot::BeginPlot("Wave Function"))
+//		{
+//			ImPlot::PlotLine(
+//					"All Regions", 
+//					buffers.xBuffer.data(), 
+//					buffers.yBuffer.data(), 
+//					buffers.xBuffer.size()
+//				);
+//			ImPlot::EndPlot();
+//		}
+//		else
+//			std::cerr << "Something went wrong while plotting.\n";
+//	}
+//	else
+//		std::cerr << "ImGui failed to begin!\n";
+//	ImGui::End();
+//	ImGui::Render();
+//}
 
 #endif // SCHRODINGER_1D__CONSTANT__POTENTIAL__SIMULATOR__INCLUDE__GUARD__CHART__VIEW__HPP
 
