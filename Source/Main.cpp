@@ -6,12 +6,12 @@ int main(int argc, char** args)
 	using ScalarType = Constants<profile>::ScalarType;
 	constexpr const ScalarType totalEnergy = .1f;
 	constexpr const ScalarType mass = 1.f;
-	constexpr const BoundryCoefficientsType<profile> startBoundry{.4f, .4f};
+	constexpr const auto startRegionParameters = RegionParameters<profile>{1.f, 4.f};
+	constexpr const auto startBoundry = BoundryCoefficientsType<profile> {.4f, .4f};
 	const auto regionParameters = std::array{
-			RegionParameters<profile>{.8f, 1.f}, 
+			RegionParameters<profile>{.8f, 3.f}, 
 			RegionParameters<profile>{.5f, 2.f}, 
-			RegionParameters<profile>{.2f, 3.f}, 
-			RegionParameters<profile>{.9f, 4.f}, 
+			RegionParameters<profile>{.2f, 1.f}
 		};
 	const auto simulationParameters 
 			= std::make_unique<SimulationParameters<profile>>(
@@ -20,29 +20,48 @@ int main(int argc, char** args)
 				);
 	const auto virtualStarterRegion = VirtualRegionCoefficients<profile>(
 			simulationParameters, 
-			regionParameters[regionParameters.size() - 1], 
+			startRegionParameters, 
 			startBoundry
 		);
 	std::cout << "Virtual Starter Region: " << virtualStarterRegion << "\n";
-	std::vector<VirtualRegionCoefficients<profile>> virtualRegions;
-	virtualRegions.push_back(virtualStarterRegion);
 	std::vector<RegionCoefficients<profile>> regions;
-	for(size_t ii = 0; ii < regionParameters.size() - 1; ++ii)
-	{
-		regions.push_back(RegionCoefficients<profile>(
-				simulationParameters, 
-				regionParameters[ii], 
-				virtualRegions.back()
-			));
-		virtualRegions.push_back(regions.back().toVirtualRegionCoefficients());
+	regions.push_back(RegionCoefficients<profile>(
+			simulationParameters, 
+			regionParameters[0], 
+			virtualStarterRegion
+		));
+	std::cout << regions.back() << "\n";
+	for(size_t ii = 1; ii < regionParameters.size(); ++ii) {
+		regions.push_back(regions.back().makeNext(regionParameters[ii]));
 		std::cout << regions.back() << "\n";
 	}
-	//QApplication application(argc, args);
-	//QMainWindow window;
-	//window.setCentralWidget(new ChartView());
-	//window.resize(400, 300);
-	//window.show();
-	//return application.exec();
-	return 0;
+	std::vector<Data<profile>> waveValues;
+	waveValues.push_back(
+			computeWaveFunction<profile>(
+					regions[regions.size() - 1], 
+					virtualStarterRegion, 
+					.01f
+				)
+		);
+	for(size_t ii = regions.size() - 1; ii >= 1; --ii)
+	{
+		waveValues.push_back(
+				computeWaveFunction<profile>(
+						regions[ii - 1], 
+						regions[ii], 
+						.01f
+					)
+			);
+	}
+	std::cout << waveValues.size() << "\n";
+	QApplication application(argc, args);
+	QMainWindow window;
+	ChartView<profile>* chart = new ChartView<profile>();
+	window.setCentralWidget(chart);
+	for(const auto& current : waveValues)
+		 chart->addRegion(current);
+	window.resize(800, 600);
+	window.show();
+	return application.exec();
 }
 

@@ -1,0 +1,7 @@
+[requirements]
+imgui/1.74
+implot/0.14
+
+[generators]
+cmake
+

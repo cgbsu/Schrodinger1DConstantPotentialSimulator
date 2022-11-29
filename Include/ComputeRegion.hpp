@@ -1,4 +1,5 @@
 #include <Data.hpp>
+#include <ChartView.hpp>
 
 #ifndef SCHRODINGER_1D__CONSTANT__POTENTIAL__SIMULATOR__INCLUDE__GUARD__COMPUTE__REGION__HPP
 #define SCHRODINGER_1D__CONSTANT__POTENTIAL__SIMULATOR__INCLUDE__GUARD__COMPUTE__REGION__HPP
@@ -333,6 +334,35 @@ struct RegionCoefficients
 		return outputMediaStream;
 	}
 };
+
+template<auto ProfileTagParamterConstant = defaultProfile>
+static auto computeWaveFunction(
+		const RegionCoefficients<ProfileTagParamterConstant> current, 
+		const VirtualRegionCoefficients<ProfileTagParamterConstant> from, 
+		const ProfileScalarType<ProfileTagParamterConstant> step
+	)
+{
+	using ConstantsType = Constants<ProfileTagParamterConstant>;
+	using ScalarType = typename ConstantsType::ScalarType;
+	constexpr static const auto exponential = ConstantsType::exponential;
+	const auto transmission = current.amplitudeCoefficients.transmission;
+	const auto reflection = current.amplitudeCoefficients.reflection;
+	const auto harmonicConstant = current.harmonicConstant;
+	std::vector<ScalarType> probabilityDensities;
+	const ScalarType start = std::min(from.regionParameters.length, current.regionParameters.length); 
+	const ScalarType stop = std::max(from.regionParameters.length, current.regionParameters.length); 
+	for( ScalarType position = start; position <= stop; position += step)
+	{
+		probabilityDensities.push_back(
+				(transmission * exponential(position * harmonicConstant)) 
+						+ (reflection * exponential(-position * harmonicConstant))
+			);
+	}
+	return Data<ProfileTagParamterConstant>{
+			Region<ProfileTagParamterConstant>{from.regionParameters.length, current.regionParameters.length}, 
+			probabilityDensities
+		};
+}
 
 #endif // SCHRODINGER_1D__CONSTANT__POTENTIAL__SIMULATOR__INCLUDE__GUARD__COMPUTE__REGION__HPP
 

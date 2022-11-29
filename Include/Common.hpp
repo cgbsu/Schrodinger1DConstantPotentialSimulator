@@ -14,5 +14,6 @@
 #include <QtWidgets/QMainWindow>
 #include <QScatterSeries>
 #include <QChartView>
+#include <QValueAxis>
 
 
