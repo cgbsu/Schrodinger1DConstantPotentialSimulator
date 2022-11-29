@@ -10,10 +10,6 @@
 #include <string>
 #include <sstream>
 #include <array>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QMainWindow>
-#include <QScatterSeries>
-#include <QChartView>
-#include <QValueAxis>
-
+#include <imgui.h>
+#include <implot.h>
 

@@ -349,17 +349,20 @@ static auto computeWaveFunction(
 	const auto reflection = current.amplitudeCoefficients.reflection;
 	const auto harmonicConstant = current.harmonicConstant;
 	std::vector<ScalarType> probabilityDensities;
+	std::vector<ScalarType> positions;
 	const ScalarType start = std::min(from.regionParameters.length, current.regionParameters.length); 
 	const ScalarType stop = std::max(from.regionParameters.length, current.regionParameters.length); 
-	for( ScalarType position = start; position <= stop; position += step)
+	for(ScalarType position = start; position <= stop; position += step)
 	{
 		probabilityDensities.push_back(
 				(transmission * exponential(position * harmonicConstant)) 
 						+ (reflection * exponential(-position * harmonicConstant))
 			);
+		positions.push_back(position);
 	}
 	return Data<ProfileTagParamterConstant>{
 			Region<ProfileTagParamterConstant>{from.regionParameters.length, current.regionParameters.length}, 
+			positions, 
 			probabilityDensities
 		};
 }
