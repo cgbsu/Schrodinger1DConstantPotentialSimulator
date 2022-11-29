@@ -215,6 +215,7 @@ static auto computeAmplitudeCoefficients( // TODO: Current is next, next is curr
 		};
 }
 
+
 template<auto ProfileTagParamterConstant = defaultProfile>
 struct VirtualRegionCoefficients
 {
@@ -350,9 +351,10 @@ static auto computeWaveFunction(
 	const auto harmonicConstant = current.harmonicConstant;
 	std::vector<ScalarType> probabilityDensities;
 	std::vector<ScalarType> positions;
-	const ScalarType start = std::min(from.regionParameters.length, current.regionParameters.length); 
-	const ScalarType stop = std::max(from.regionParameters.length, current.regionParameters.length); 
-	for(ScalarType position = start; position <= stop; position += step)
+	const ScalarType start = from.regionParameters.length; //std::min(from.regionParameters.length, current.regionParameters.length); 
+	const ScalarType stop = current.regionParameters.length; //std::max(from.regionParameters.length, current.regionParameters.length); 
+	const ScalarType stepScalar = start > stop ? -1 : 1;
+	for(ScalarType position = start; position <= stop; position += (step * stepScalar))
 	{
 		probabilityDensities.push_back(
 				(transmission * exponential(position * harmonicConstant)) 
