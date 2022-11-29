@@ -44,26 +44,16 @@ int main(int argc, char** args)
 				);
 			if(regionParameters.size() > 0)
 			{
-				std::vector<RegionCoefficients<profile>> regionCoefficients{
-						virtualStarterRegion->makeNext(regionParameters[0])
-					};
-				for(size_t ii = 1; ii < regionParameters.size(); ++ii)
-				{
-					regionCoefficients.push_back(
-							regionCoefficients[ii - 1].makeNext(regionParameters[ii])
-						);
-				}
-				std::vector<VirtualRegionCoefficients<profile>> virtualRegions{*virtualStarterRegion};
-				std::vector<Data<profile>> waveFunctionData;
-				for(size_t ii = 0; ii < regionCoefficients.size(); ++ii)
-				{
-					waveFunctionData.push_back(computeWaveFunction<profile>(
-							regionCoefficients[ii], 
-							virtualRegions[ii], 
-							.01f
-						));
-					virtualRegions.push_back(regionCoefficients[ii]);
-				}
+				const auto regionCoefficients = regionCoefficientsFromParameters<profile>(
+						simulationParameters, 
+						virtualStarterRegion, 
+						regionParameters
+					);
+				const auto waveFunctionData = computeWaveFunctionValues<profile>(
+						regionCoefficients, 
+						virtualStarterRegion, 
+						.001f
+					);
 				plot(waveFunctionData);
 			}
 		});

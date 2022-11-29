@@ -207,7 +207,7 @@ static auto simulationControlWindow(
 				ImGuiSliderFlags_None
 			);
 		if(regionParameterSet.length < previousLength)
-				regionParameterSet.length += previousLength;
+				regionParameterSet.length += previousLength - regionParameterSet.length;
 		ImGui::DragFloat("Length", &regionParameterSet.length, .001f, previousLength, previousLength + reasonableMaximum);
 		previousLength = regionParameterSet.length;
 		ImGui::PopID();

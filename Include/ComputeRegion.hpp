@@ -374,5 +374,47 @@ static auto computeWaveFunction(
 		};
 }
 
+template<auto ProfileTagParamterConstant = defaultProfile>
+static auto regionCoefficientsFromParameters(
+		const std::unique_ptr<SimulationParameters<ProfileTagParamterConstant>>& simulationParameters, 
+		const std::unique_ptr<VirtualRegionCoefficients<ProfileTagParamterConstant>>& virtualStarterRegion, 
+		const std::vector<RegionParameters<ProfileTagParamterConstant>>& regionParameters
+	) -> std::vector<RegionCoefficients<ProfileTagParamterConstant>>
+{
+	constexpr const auto profile = ProfileTagParamterConstant;
+	std::vector<RegionCoefficients<profile>> regionCoefficients{
+			virtualStarterRegion->makeNext(regionParameters[0])
+		};
+	for(size_t ii = 1; ii < regionParameters.size(); ++ii)
+	{
+		regionCoefficients.push_back(
+				regionCoefficients[ii - 1].makeNext(regionParameters[ii])
+			);
+	}
+	return regionCoefficients;
+}
+
+template<auto ProfileTagParamterConstant = defaultProfile>
+static auto computeWaveFunctionValues(
+		const std::vector<RegionCoefficients<ProfileTagParamterConstant>>& regionCoefficients, 
+		const std::unique_ptr<VirtualRegionCoefficients<ProfileTagParamterConstant>>& virtualStarterRegion, 
+		const ProfileScalarType<ProfileTagParamterConstant> step
+	) -> std::vector<Data<ProfileTagParamterConstant>>
+{
+	constexpr const auto profile = ProfileTagParamterConstant;
+	std::vector<VirtualRegionCoefficients<profile>> virtualRegions{*virtualStarterRegion};
+	std::vector<Data<profile>> waveFunctionData;
+	for(size_t ii = 0; ii < regionCoefficients.size(); ++ii)
+	{
+		waveFunctionData.push_back(computeWaveFunction<profile>(
+				regionCoefficients[ii], 
+				virtualRegions[ii], 
+				step
+			));
+		virtualRegions.push_back(regionCoefficients[ii]);
+	}
+	return waveFunctionData;
+}
+
 #endif // SCHRODINGER_1D__CONSTANT__POTENTIAL__SIMULATOR__INCLUDE__GUARD__COMPUTE__REGION__HPP
 
