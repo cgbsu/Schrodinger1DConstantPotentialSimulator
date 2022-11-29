@@ -7,76 +7,65 @@ int main(int argc, char** args)
 	using ScalarType = Constants<profile>::ScalarType;
 	ScalarType totalEnergy = .1f;
 	ScalarType mass = 1.f;
-	const auto startRegionParameters = RegionParameters<profile>{1.f, 0.f};
-	const auto startBoundry = BoundryCoefficientsType<profile> {.4f, .4f};
-	const auto regionParameters = std::array{
-			RegionParameters<profile>{.8f, 3.f}, 
-			RegionParameters<profile>{.5f, 2.f}, 
-			RegionParameters<profile>{.2f, 1.f}
-		};
-	const auto simulationParameters 
+	auto simulationParameters 
 			= std::make_unique<SimulationParameters<profile>>(
 					totalEnergy, 
 					mass
 				);
-	const auto virtualStarterRegion = VirtualRegionCoefficients<profile>(
-			simulationParameters, 
-			startRegionParameters, 
-			startBoundry
-		);
-	std::cout << "Virtual Starter Region: " << virtualStarterRegion << "\n";
-	std::vector<RegionCoefficients<profile>> regions;
-	std::vector<VirtualRegionCoefficients<profile>> virtualRegions{virtualStarterRegion};
-	regions.push_back(RegionCoefficients<profile>(
-			simulationParameters, 
-			regionParameters[0], 
-			virtualStarterRegion
-		));
-	virtualRegions.push_back(regions.back());
-	std::cout << regions.back() << "\n";
-	for(size_t ii = 1; ii < regionParameters.size(); ++ii)
-	{
-		regions.push_back(regions.back().makeNext(regionParameters[ii]));
-		virtualRegions.push_back(regions.back());
-		std::cout << regions.back() << "\n";
-	}
-	std::vector<Data<profile>> waveValues;
-	waveValues.push_back(
-			computeWaveFunction<profile>(
-					regions[regions.size() - 1], 
-					virtualStarterRegion, 
-					.01f
-				)
-		);
-	for(size_t ii = 1; ii < virtualRegions.size(); --ii)
-	{
-		waveValues.push_back(
-				computeWaveFunction<profile>(
-						regions[ii], 
-						virtualRegions[ii - 1], 
-						.01f
-					)
-			);
-	}
-	std::cout << waveValues.size() << "\n";
-	float reasonableMaximum = 1.f;
-
+	auto virtualStarterRegion 
+			= std::make_unique<VirtualRegionCoefficients<profile>>(
+					simulationParameters, 
+					RegionParameters<profile>{1.f, 0.f}, 
+					BoundryCoefficientsType<profile> {.4f, .4f}
+				);
+	std::vector<RegionParameters<profile>> regionParameters;
 	auto* window = initializeGUI();
 	const auto sliderDimensions = ImVec2(40, 160);
+	float reasonableMaximum = 1.f;
 	renderLoop(window, [&]()
 		{
-			virtualRegionParametersGui(
+			simulationParameters = std::move(simulationParametersGui(
+					reasonableMaximum, 
+					simulationParameters, 
+					sliderDimensions
+				));
+			virtualStarterRegion = std::move(virtualRegionParametersGui(
 					reasonableMaximum, 
 					simulationParameters, 
 					virtualStarterRegion, 
 					sliderDimensions
-				);
-			simulationParametersGui(
+				));
+			simulationControlWindow(
 					reasonableMaximum, 
 					simulationParameters, 
+					virtualStarterRegion, 
+					regionParameters, 
 					sliderDimensions
 				);
-			plot(waveValues);
+			if(regionParameters.size() > 0)
+			{
+				std::vector<RegionCoefficients<profile>> regionCoefficients{
+						virtualStarterRegion->makeNext(regionParameters[0])
+					};
+				for(size_t ii = 1; ii < regionParameters.size(); ++ii)
+				{
+					regionCoefficients.push_back(
+							regionCoefficients[ii - 1].makeNext(regionParameters[ii])
+						);
+				}
+				std::vector<VirtualRegionCoefficients<profile>> virtualRegions{*virtualStarterRegion};
+				std::vector<Data<profile>> waveFunctionData;
+				for(size_t ii = 0; ii < regionCoefficients.size(); ++ii)
+				{
+					waveFunctionData.push_back(computeWaveFunction<profile>(
+							regionCoefficients[ii], 
+							virtualRegions[ii], 
+							.01f
+						));
+					virtualRegions.push_back(regionCoefficients[ii]);
+				}
+				plot(waveFunctionData);
+			}
 		});
 	cleanUpGUI(window);
 }

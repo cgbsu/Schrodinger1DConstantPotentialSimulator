@@ -64,16 +64,13 @@ static auto simulationParametersGui(
 	float totalEnergy = simulationParameters->totalEnergy;
 	float mass = simulationParameters->mass;
 	ImGui::Begin("Global Simulation Parameters");
-	ImGui::VSliderFloat(
+
+	int reasonableMaximumClamped = std::ceil(reasonableMaximum);
+	ImGui::InputInt(
 			"Reasonible Maximum", 
-			sliderDimensions, 
-			&reasonableMaximum, 
-			0.f, 
-			100.f, 
-			"%.3f", 
-			ImGuiSliderFlags_None
+			&reasonableMaximumClamped
 		);
-	ImGui::SameLine();
+	reasonableMaximum = static_cast<float>(reasonableMaximumClamped);
 	ImGui::VSliderFloat(
 			"Total Energy", 
 			sliderDimensions, 
@@ -101,16 +98,15 @@ template<auto ProfileTagParamterConstant = defaultProfile>
 static auto virtualRegionParametersGui(
 		const float reasonableMaximum, 
 		const std::unique_ptr<SimulationParameters<ProfileTagParamterConstant>>& simulationParameters, 
-		const VirtualRegionCoefficients<ProfileTagParamterConstant> current, 
+		const std::unique_ptr<VirtualRegionCoefficients<ProfileTagParamterConstant>>& current, 
 		const auto sliderDimensions
-	)
-		-> const VirtualRegionCoefficients<ProfileTagParamterConstant>
+	) -> std::unique_ptr<VirtualRegionCoefficients<ProfileTagParamterConstant>>
 {
 	constexpr const auto profile = ProfileTagParamterConstant;
-	float startBondryTransmissivePart = current.boundry.transmission;
-	float startBondryReflectivePart = current.boundry.reflection;
-	float startBondryPotential = current.regionParameters.potential;
-	float startBondryLength = current.regionParameters.length;
+	float startBondryTransmissivePart = current->boundry.transmission;
+	float startBondryReflectivePart = current->boundry.reflection;
+	float startBondryPotential = current->regionParameters.potential;
+	float startBondryLength = current->regionParameters.length;
 	ImGui::Begin("Virtual Starter Region Parameters");
 	ImGui::VSliderFloat(
 			"Start Boundry (Transmission Part)", 
@@ -137,7 +133,7 @@ static auto virtualRegionParametersGui(
 			sliderDimensions, 
 			&startBondryPotential, 
 			0.f, 
-			simulationParameters->totalEnergy, 
+			reasonableMaximum, 
 			"%.3f", 
 			ImGuiSliderFlags_None
 		);
@@ -151,7 +147,7 @@ static auto virtualRegionParametersGui(
 			"%.3f", 
 			ImGuiSliderFlags_None
 		);
-	const auto starterRegion = VirtualRegionCoefficients<profile>(
+	auto starterRegion = std::make_unique<VirtualRegionCoefficients<profile>>(
 			simulationParameters, 
 			RegionParameters<profile>{startBondryPotential, startBondryLength}, 
 			BoundryCoefficientsType<profile>{
@@ -163,10 +159,49 @@ static auto virtualRegionParametersGui(
 		"%s", 
 		allToString(
 			"Start Region Harmonic Constant: ", 
-			starterRegion.harmonicConstant
+			starterRegion->harmonicConstant
 		).c_str());
 	ImGui::End();
 	return starterRegion;
+}
+
+template<auto ProfileTagParamterConstant = defaultProfile>
+static auto simulationControlWindow(
+		const float reasonableMaximum, 
+		const std::unique_ptr<SimulationParameters<ProfileTagParamterConstant>>& simulationParameters, 
+		const std::unique_ptr<VirtualRegionCoefficients<ProfileTagParamterConstant>>& starterRegion, 
+		std::vector<RegionParameters<ProfileTagParamterConstant>>& regionParameters, 
+		const auto sliderDimensions
+	)
+{
+	constexpr const auto profile = ProfileTagParamterConstant;
+	using ConstantsType = Constants<ProfileTagParamterConstant>;
+	using ScalarType = typename ConstantsType::ScalarType;
+	ImGui::Begin("Region Control Panel");
+	int regionCount = regionParameters.size();
+	ImGui::InputInt("Number of Regions", &regionCount, 1, 1);
+	if(regionCount > regionParameters.size())
+		regionParameters.push_back(RegionParameters<profile>{0.f, 0.f});
+	else if(regionCount < regionParameters.size())
+		regionParameters.erase(regionParameters.end() - 1);
+	size_t regionIndex = 0;
+	ScalarType previousLength = starterRegion->regionParameters.length;
+	for(auto& regionParameterSet : regionParameters)
+	{
+		ImGui::Text("Region %i", regionCount);
+		ImGui::VSliderFloat(
+				"Potential", 
+				sliderDimensions, 
+				&regionParameterSet.potential, 
+				0.f, 
+				reasonableMaximum, 
+				"%.3f", 
+				ImGuiSliderFlags_None
+			);
+		ImGui::DragFloat("Length", &regionParameterSet.length, .001f, previousLength, reasonableMaximum);
+		previousLength = regionParameterSet.length;
+	}
+	ImGui::End();
 }
 
 static void glfw_error_callback(int error, const char* description) {

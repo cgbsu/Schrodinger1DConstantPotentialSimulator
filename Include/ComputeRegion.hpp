@@ -68,8 +68,8 @@ struct RegionParameters
 	using ThisType = RegionParameters<profileTag>;
 	using ConstantsType = Constants<profileTag>;
 	using ScalarType = ConstantsType::ScalarType;
-	const ScalarType potential;
-	const ScalarType length;
+	ScalarType potential;
+	ScalarType length;
 	const std::string toString() const noexcept
 	{
 		return allToString(
@@ -214,6 +214,8 @@ static auto computeAmplitudeCoefficients( // TODO: Current is next, next is curr
 		};
 }
 
+template<auto ProfileTagParamterConstant = defaultProfile>
+struct RegionCoefficients;
 
 template<auto ProfileTagParamterConstant = defaultProfile>
 struct VirtualRegionCoefficients
@@ -225,6 +227,7 @@ struct VirtualRegionCoefficients
 	const ScalarType harmonicConstant;
 	const BoundryCoefficientsType<profileTag> boundry;
 	const RegionParameters<profileTag> regionParameters;
+	const std::unique_ptr<SimulationParameters<profileTag>>& simulationParameters;
 
 	explicit VirtualRegionCoefficients(
 			const std::unique_ptr<SimulationParameters<profileTag>>& simulationParameters, 
@@ -233,16 +236,8 @@ struct VirtualRegionCoefficients
 		) noexcept : 
 			harmonicConstant(computeHarmonicConstant<profileTag>(simulationParameters, regionParameters)), 
 			boundry(boundry), 
-			regionParameters(regionParameters)
-		{}
-	explicit VirtualRegionCoefficients(
-			const ScalarType harmonicConstant, 
-			const RegionParameters<profileTag> regionParameters, 
-			const BoundryCoefficientsType<profileTag> boundry
-		) noexcept : 
-			harmonicConstant(harmonicConstant), 
-			boundry(boundry), 
-			regionParameters(regionParameters)
+			regionParameters(regionParameters), 
+			simulationParameters(simulationParameters)
 		{}
 	std::string toString() const noexcept
 	{
@@ -260,9 +255,20 @@ struct VirtualRegionCoefficients
 		outputMediaStream << virtualRegion.toString();
 		return outputMediaStream;
 	}
+
+	constexpr auto makeNext(
+			const RegionParameters<profileTag> regionParameters
+		) const noexcept
+	{
+		return RegionCoefficients<profileTag>(
+				simulationParameters, 
+				regionParameters, 
+				*this
+			);
+	}
 };
 
-template<auto ProfileTagParamterConstant = defaultProfile>
+template<auto ProfileTagParamterConstant>
 struct RegionCoefficients
 {
 	constexpr static const auto profileTag = ProfileTagParamterConstant;
@@ -310,7 +316,7 @@ struct RegionCoefficients
 	}
 	
 	constexpr VirtualRegionType toVirtualRegionCoefficients() const noexcept {
-		return VirtualRegionType(harmonicConstant, regionParameters, boundry);
+		return VirtualRegionType(simulationParameters, regionParameters, boundry);
 	}
 	constexpr operator VirtualRegionType() const noexcept {
 		return toVirtualRegionCoefficients();
