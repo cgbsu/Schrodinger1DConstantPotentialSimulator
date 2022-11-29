@@ -1,9 +1,4 @@
-#include <Data.hpp>
-#include "imgui.h"
-#include <bindings/imgui_impl_glfw.h>
-#include <bindings/imgui_impl_opengl3.h>
-#include "implot.h"
-#include <GLFW/glfw3.h>
+#include <ComputeRegion.hpp>
 
 #ifndef SCHRODINGER_1D__CONSTANT__POTENTIAL__SIMULATOR__INCLUDE__GUARD__CHART__VIEW__HPP
 #define SCHRODINGER_1D__CONSTANT__POTENTIAL__SIMULATOR__INCLUDE__GUARD__CHART__VIEW__HPP
@@ -56,6 +51,122 @@ static void plot(const std::vector<Data<ProfileTagParamterConstant>>& data)//con
 	else
 		std::cerr << "ImGui failed to begin!\n";
 	ImGui::End();
+}
+
+template<auto ProfileTagParamterConstant = defaultProfile>
+static auto simulationParametersGui(
+		float& reasonableMaximum, 
+		const std::unique_ptr<SimulationParameters<ProfileTagParamterConstant>>& simulationParameters, 
+		const auto sliderDimensions
+	) -> std::unique_ptr<SimulationParameters<ProfileTagParamterConstant>>
+{
+	constexpr const auto profile = ProfileTagParamterConstant;
+	float totalEnergy = simulationParameters->totalEnergy;
+	float mass = simulationParameters->mass;
+	ImGui::Begin("Global Simulation Parameters");
+	ImGui::VSliderFloat(
+			"Reasonible Maximum", 
+			sliderDimensions, 
+			&reasonableMaximum, 
+			0.f, 
+			100.f, 
+			"%.3f", 
+			ImGuiSliderFlags_None
+		);
+	ImGui::SameLine();
+	ImGui::VSliderFloat(
+			"Total Energy", 
+			sliderDimensions, 
+			&totalEnergy, 
+			0.f, 
+			reasonableMaximum, 
+			"%.3f", 
+			ImGuiSliderFlags_None
+		);
+	ImGui::SameLine();
+	ImGui::VSliderFloat(
+			"Mass", 
+			sliderDimensions, 
+			&mass, 
+			0.f, 
+			reasonableMaximum, 
+			"%.3f", 
+			ImGuiSliderFlags_None
+		);
+	ImGui::End();
+	return std::make_unique<SimulationParameters<profile>>(totalEnergy, mass);
+}
+
+template<auto ProfileTagParamterConstant = defaultProfile>
+static auto virtualRegionParametersGui(
+		const float reasonableMaximum, 
+		const std::unique_ptr<SimulationParameters<ProfileTagParamterConstant>>& simulationParameters, 
+		const VirtualRegionCoefficients<ProfileTagParamterConstant> current, 
+		const auto sliderDimensions
+	)
+		-> const VirtualRegionCoefficients<ProfileTagParamterConstant>
+{
+	constexpr const auto profile = ProfileTagParamterConstant;
+	float startBondryTransmissivePart = current.boundry.transmission;
+	float startBondryReflectivePart = current.boundry.reflection;
+	float startBondryPotential = current.regionParameters.potential;
+	float startBondryLength = current.regionParameters.length;
+	ImGui::Begin("Virtual Starter Region Parameters");
+	ImGui::VSliderFloat(
+			"Start Boundry (Transmission Part)", 
+			sliderDimensions, 
+			&startBondryTransmissivePart, 
+			0.f, 
+			1.0f, 
+			"%.3f", 
+			ImGuiSliderFlags_None
+		);
+	ImGui::SameLine();
+	ImGui::VSliderFloat(
+			"Start Boundry (Reflection Part)", 
+			sliderDimensions, 
+			&startBondryReflectivePart, 
+			0.f, 
+			1.0f, 
+			"%.3f", 
+			ImGuiSliderFlags_None
+		);
+	ImGui::SameLine();
+	ImGui::VSliderFloat(
+			"Start Boundry \"Potential\"", 
+			sliderDimensions, 
+			&startBondryPotential, 
+			0.f, 
+			simulationParameters->totalEnergy, 
+			"%.3f", 
+			ImGuiSliderFlags_None
+		);
+	ImGui::SameLine();
+	ImGui::VSliderFloat(
+			"Start Boundry \"Length\"", 
+			sliderDimensions, 
+			&startBondryLength, 
+			0.f, 
+			reasonableMaximum, 
+			"%.3f", 
+			ImGuiSliderFlags_None
+		);
+	const auto starterRegion = VirtualRegionCoefficients<profile>(
+			simulationParameters, 
+			RegionParameters<profile>{startBondryPotential, startBondryLength}, 
+			BoundryCoefficientsType<profile>{
+					startBondryTransmissivePart, 
+					startBondryReflectivePart
+				}
+		);
+	ImGui::Text(
+		"%s", 
+		allToString(
+			"Start Region Harmonic Constant: ", 
+			starterRegion.harmonicConstant
+		).c_str());
+	ImGui::End();
+	return starterRegion;
 }
 
 static void glfw_error_callback(int error, const char* description) {

@@ -59,82 +59,22 @@ int main(int argc, char** args)
 			);
 	}
 	std::cout << waveValues.size() << "\n";
-	float startBondryReal = 0.f;
-	float startBondryImaginary = 0.f;
-	float startBondryPotential = 0.f;
-	float startBondryLength = 0.f;
 	float reasonableMaximum = 1.f;
 
 	auto* window = initializeGUI();
+	const auto sliderDimensions = ImVec2(40, 160);
 	renderLoop(window, [&]()
 		{
-			ImGui::VSliderFloat(
-					"Start Boundry (Real Part)", 
-					ImVec2(18, 160), 
-					&startBondryReal, 
-					0.f, 
-					1.0f, 
-					"%.3f", 
-					ImGuiSliderFlags_None
-				);
-			ImGui::SameLine();
-			ImGui::VSliderFloat(
-					"Start Boundry (Imaginary Part)", 
-					ImVec2(18, 160), 
-					&startBondryImaginary, 
-					0.f, 
-					1.0f, 
-					"%.3f", 
-					ImGuiSliderFlags_None
-				);
-			ImGui::VSliderFloat(
-					"Reasonible Maximum", 
-					ImVec2(18, 160), 
-					&reasonableMaximum, 
-					0.f, 
-					100.f, 
-					"%.3f", 
-					ImGuiSliderFlags_None
-				);
-			ImGui::SameLine();
-			ImGui::VSliderFloat(
-					"Total Energy", 
-					ImVec2(18, 160), 
-					&totalEnergy, 
-					0.f, 
+			virtualRegionParametersGui(
 					reasonableMaximum, 
-					"%.3f", 
-					ImGuiSliderFlags_None
+					simulationParameters, 
+					virtualStarterRegion, 
+					sliderDimensions
 				);
-			ImGui::SameLine();
-			ImGui::VSliderFloat(
-					"Mass", 
-					ImVec2(18, 160), 
-					&mass, 
-					0.f, 
+			simulationParametersGui(
 					reasonableMaximum, 
-					"%.3f", 
-					ImGuiSliderFlags_None
-				);
-			ImGui::SameLine();
-			ImGui::VSliderFloat(
-					"Start Boundry Potential", 
-					ImVec2(18, 160), 
-					&startBondryPotential, 
-					0.f, 
-					totalEnergy, 
-					"%.3f", 
-					ImGuiSliderFlags_None
-				);
-			ImGui::SameLine();
-			ImGui::VSliderFloat(
-					"Start Boundry Length", 
-					ImVec2(18, 160), 
-					&startBondryLength, 
-					0.f, 
-					reasonableMaximum, 
-					"%.3f", 
-					ImGuiSliderFlags_None
+					simulationParameters, 
+					sliderDimensions
 				);
 			plot(waveValues);
 		});
