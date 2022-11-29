@@ -170,9 +170,9 @@ static auto simulationControlWindow(
 		const float reasonableMaximum, 
 		const std::unique_ptr<SimulationParameters<ProfileTagParamterConstant>>& simulationParameters, 
 		const std::unique_ptr<VirtualRegionCoefficients<ProfileTagParamterConstant>>& starterRegion, 
-		std::vector<RegionParameters<ProfileTagParamterConstant>>& regionParameters, 
+		std::vector<RegionParameters<ProfileTagParamterConstant>> regionParameters, 
 		const auto sliderDimensions
-	)
+	) -> std::vector<RegionParameters<ProfileTagParamterConstant>>
 {
 	constexpr const auto profile = ProfileTagParamterConstant;
 	using ConstantsType = Constants<ProfileTagParamterConstant>;
@@ -180,15 +180,23 @@ static auto simulationControlWindow(
 	ImGui::Begin("Region Control Panel");
 	int regionCount = regionParameters.size();
 	ImGui::InputInt("Number of Regions", &regionCount, 1, 1);
-	if(regionCount > regionParameters.size())
+	if(regionCount > regionParameters.size()) {
+		std::cout << "Add Region!\n";
 		regionParameters.push_back(RegionParameters<profile>{0.f, 0.f});
-	else if(regionCount < regionParameters.size())
+	}
+	else if(regionCount < regionParameters.size()) {
 		regionParameters.erase(regionParameters.end() - 1);
-	size_t regionIndex = 0;
+		std::cout << "Remove Region\n";
+	}
+	int regionIndex = 0;
 	ScalarType previousLength = starterRegion->regionParameters.length;
-	for(auto& regionParameterSet : regionParameters)
+	ImGui::BeginGroup();
+	for(size_t ii = 0; ii < regionParameters.size(); ++ii)
 	{
-		ImGui::Text("Region %i", regionCount);
+		ImGui::PushID(ii);
+		auto& regionParameterSet = regionParameters[ii];
+		++regionIndex;
+		ImGui::Text("Region %i", regionIndex);
 		ImGui::VSliderFloat(
 				"Potential", 
 				sliderDimensions, 
@@ -198,10 +206,15 @@ static auto simulationControlWindow(
 				"%.3f", 
 				ImGuiSliderFlags_None
 			);
-		ImGui::DragFloat("Length", &regionParameterSet.length, .001f, previousLength, reasonableMaximum);
+		if(regionParameterSet.length < previousLength)
+				regionParameterSet.length += previousLength;
+		ImGui::DragFloat("Length", &regionParameterSet.length, .001f, previousLength, previousLength + reasonableMaximum);
 		previousLength = regionParameterSet.length;
+		ImGui::PopID();
 	}
+	ImGui::EndGroup();
 	ImGui::End();
+	return regionParameters;
 }
 
 static void glfw_error_callback(int error, const char* description) {

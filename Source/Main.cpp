@@ -35,7 +35,7 @@ int main(int argc, char** args)
 					virtualStarterRegion, 
 					sliderDimensions
 				));
-			simulationControlWindow(
+			regionParameters = simulationControlWindow(
 					reasonableMaximum, 
 					simulationParameters, 
 					virtualStarterRegion, 
