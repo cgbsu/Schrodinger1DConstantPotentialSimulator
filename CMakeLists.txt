@@ -8,11 +8,17 @@ set(MAKE_EXPORT_COMPILE_COMMANDS ON)
 #set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 #set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
+set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
+
+find_package(imgui CONFIG)
+find_package(glfw3 CONFIG)
+find_package(glew CONFIG)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-include_directories(${CMAKE_SOURCE_DIR}/Include)
+include_directories(${CMAKE_SOURCE_DIR}/Include ${CMAKE_SOURCE_DIR}/backends)
 FILE(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR}/Include)
 FILE(GLOB_RECURSE SOURCE_FILES ${CMAKE_SOURCE_DIR}/Source/*.cpp ${HeaderFiles})
 
