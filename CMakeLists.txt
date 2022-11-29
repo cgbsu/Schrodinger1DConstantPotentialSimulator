@@ -18,7 +18,7 @@ find_package(glew CONFIG)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-include_directories(${CMAKE_SOURCE_DIR}/Include ${CMAKE_SOURCE_DIR}/backends)
+include_directories(${CMAKE_SOURCE_DIR}/Include ${CMAKE_SOURCE_DIR})
 FILE(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR}/Include)
 FILE(GLOB_RECURSE SOURCE_FILES ${CMAKE_SOURCE_DIR}/Source/*.cpp ${HeaderFiles})
 
