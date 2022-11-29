@@ -30,32 +30,6 @@ static auto consolidateData(std::vector<Data<ProfileTagParamterConstant>>& regio
 	return ChartBuffers{xBuffer, yBuffer};
 }
 
-<<<<<<< HEAD
-//template<auto ProfileTagParamterConstant = defaultProfile>
-//static void plot(const ChartBuffers<ProfileTagParamterConstant>& buffers)
-//{
-//	ImGui::NewFrame();	
-//	if(ImGui::Begin("1D Schrodinger Constant Potential Simulation"))
-//	{
-//		if(ImPlot::BeginPlot("Wave Function"))
-//		{
-//			ImPlot::PlotLine(
-//					"All Regions", 
-//					buffers.xBuffer.data(), 
-//					buffers.yBuffer.data(), 
-//					buffers.xBuffer.size()
-//				);
-//			ImPlot::EndPlot();
-//		}
-//		else
-//			std::cerr << "Something went wrong while plotting.\n";
-//	}
-//	else
-//		std::cerr << "ImGui failed to begin!\n";
-//	ImGui::End();
-//	ImGui::Render();
-//}
-=======
 template<auto ProfileTagParamterConstant = defaultProfile>
 static void plot(const std::vector<Data<ProfileTagParamterConstant>>& data)//const ChartBuffers<ProfileTagParamterConstant>& buffers)
 {
@@ -142,7 +116,6 @@ void renderLoop(auto* window, auto job)
 		glfwSwapBuffers(window);
 	}
 }
->>>>>>> de9ea2b2fba2a408001843619ec49038db3b60ed
 
 #endif // SCHRODINGER_1D__CONSTANT__POTENTIAL__SIMULATOR__INCLUDE__GUARD__CHART__VIEW__HPP
 

@@ -11,21 +11,42 @@ set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 set(CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 
-#find_package(imgui CONFIG)
-#find_package(glfw3 CONFIG)
-#find_package(glew CONFIG)
+find_package(imgui CONFIG)
+find_package(glfw3 CONFIG)
+find_package(glew CONFIG)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-include_directories(${CMAKE_SOURCE_DIR}/Include)
+include_directories(${CMAKE_SOURCE_DIR}/Include ${CMAKE_SOURCE_DIR})
 FILE(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR}/Include)
 FILE(GLOB_RECURSE SOURCE_FILES ${CMAKE_SOURCE_DIR}/Source/*.cpp ${HeaderFiles})
 
-include(FetchContent)
-
 add_compile_definitions(QT_DEPRECATED_WARNINGS)
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} 
+		bindings/imgui_impl_glfw.cpp 
+		bindings/imgui_impl_glfw.h 
+		bindings/imgui_impl_opengl3.cpp 
+		bindings/imgui_impl_opengl3.h 
+		${SOURCE_FILES}
+	)
+#add_custom_command(TARGET
+#                dear-imgui-conan
+#                POST_BUILD
+#                COMMAND
+#                    ${CMAKE_COMMAND} -E copy
+#                        ${PROJECT_SOURCE_DIR}/assets/simple-shader.vs
+#                        ${PROJECT_BINARY_DIR}
+#                COMMAND
+#                    ${CMAKE_COMMAND} -E copy
+#                        ${PROJECT_SOURCE_DIR}/assets/simple-shader.fs
+#                        ${PROJECT_BINARY_DIR}
+#)
+
+target_compile_definitions(${PROJECT_NAME}
+    PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLEW
+)
+
 target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
 

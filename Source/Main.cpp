@@ -139,6 +139,5 @@ int main(int argc, char** args)
 			plot(waveValues);
 		});
 	cleanUpGUI(window);
->>>>>>> de9ea2b2fba2a408001843619ec49038db3b60ed
 }
 
